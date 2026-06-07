@@ -12,6 +12,8 @@ type Config struct {
 	Env         string `yaml:"env" env-default:"local"`
 	StoragePath string `yaml:"storage_path" env-required:"true"`
 	HTTPServer  `yaml:"http_server"`
+	Clients ClientsConfig `yaml:"clients"`
+	AppSecret string `yaml:"app_secret" env-required:"true" env:"APP_SECRET"`
 }
 
 type HTTPServer struct {
@@ -21,6 +23,20 @@ type HTTPServer struct {
 	User        string        `yaml:"user" env-required:"true"`
 	Password    string        `yaml:"password" env-required:"true" env:"HTTP_SERVER_PASSWORD"`
 }
+
+type Client struct {
+	Address string
+	Timeout time.Duration
+	RetriesCount int
+	Insecure bool
+}
+
+
+type ClientsConfig struct {
+ 	SSO Client `yaml: "sso"`
+}
+
+
 
 func MustLoad() *Config {
 	configPath := os.Getenv("CONFIG_PATH")

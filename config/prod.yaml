@@ -5,3 +5,11 @@ http_server:
   timeout: 4s
   idle_timeout: 30s
   user: "Shabby8574"
+  password: "my-password"
+clients:
+  sso:
+    address: "localhost:44044"
+    timeout: 5s
+    retries_count: 3
+    insecure: true
+app_secret: "my-secret-key"
