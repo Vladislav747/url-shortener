@@ -2,6 +2,7 @@ package save_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +17,12 @@ import (
 	"url-shortener/internal/http-server/handlers/url/save/mocks"
 	"url-shortener/internal/lib/logger/handlers/slogdiscard"
 )
+
+type adminCheckerMock struct{}
+
+func (adminCheckerMock) IsAdmin(_ context.Context, userID int64) (bool, error) {
+	return userID == 1, nil
+}
 
 func TestSaveHandler(t *testing.T) {
 	cases := []struct {
@@ -70,7 +77,7 @@ func TestSaveHandler(t *testing.T) {
 					Once()
 			}
 
-			handler := save.New(slogdiscard.NewDiscardLogger(), urlSaverMock)
+			handler := save.New(slogdiscard.NewDiscardLogger(), urlSaverMock, adminCheckerMock{})
 
 			input := fmt.Sprintf(`{"url": "%s", "alias": "%s"}`, tc.url, tc.alias)
 

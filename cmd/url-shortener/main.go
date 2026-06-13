@@ -52,7 +52,6 @@ func main() {
 		log.Error("failed to init sso client", sl.Err(err))
 		os.Exit(1)
 	}
-	_ = ssoClient
 
 	storage, err := sqlite.New(cfg.StoragePath)
 	if err != nil {
@@ -69,11 +68,7 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	router.Route("/url", func(r chi.Router) {
-		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
-			cfg.HTTPServer.User: cfg.HTTPServer.Password,
-		}))
-
-		r.Post("/", save.New(log, storage))
+		r.Post("/", save.New(log, storage, ssoClient))
 		// TODO: add DELETE /url/{id}
 	})
 

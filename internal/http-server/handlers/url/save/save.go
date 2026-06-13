@@ -1,6 +1,7 @@
 package save
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -16,6 +17,11 @@ import (
 	"url-shortener/internal/storage"
 )
 
+const (
+	aliasLength = 6
+	mockUserID  = 1
+)
+
 type Request struct {
 	URL   string `json:"url" validate:"required,url"`
 	Alias string `json:"alias,omitempty"`
@@ -26,15 +32,16 @@ type Response struct {
 	Alias string `json:"alias,omitempty"`
 }
 
-// TODO: move to config if needed
-const aliasLength = 6
-
 //go:generate go run github.com/vektra/mockery/v2@v2.28.2 --name=URLSaver
 type URLSaver interface {
 	SaveURL(urlToSave string, alias string) (int64, error)
 }
 
-func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
+type AdminChecker interface {
+	IsAdmin(ctx context.Context, userID int64) (bool, error)
+}
+
+func New(log *slog.Logger, urlSaver URLSaver, adminChecker AdminChecker) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.url.save.New"
 
@@ -43,12 +50,20 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
+		isAdmin, err := adminChecker.IsAdmin(r.Context(), mockUserID)
+		if err != nil {
+			log.Error("failed to check admin", sl.Err(err))
+			render.JSON(w, r, resp.Error("internal error"))
+
+			return
+		}
+
+		log.Info("isAdmin check", slog.Int64("uid", mockUserID), slog.Bool("is_admin", isAdmin))
+
 		var req Request
 
-		err := render.DecodeJSON(r.Body, &req)
+		err = render.DecodeJSON(r.Body, &req)
 		if errors.Is(err, io.EOF) {
-			// Такую ошибку встретим, если получили запрос с пустым телом.
-			// Обработаем её отдельно
 			log.Error("request body is empty")
 
 			render.JSON(w, r, resp.Error("empty request"))

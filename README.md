@@ -198,8 +198,14 @@ clients:
 # 1. Запустить SSO-сервис (отдельный сервис, proto-контракт — в репозитории protos)
 #    на порту, указанном в clients.sso.address
 
+```
+cd /Users/vlad/Documents/Web/auth_project/sso
+CONFIG_PATH=./config/local.yaml go run ./cmd/sso/main.go
+```
+
 # 2. Запустить url-shortener
-CONFIG_PATH=./config/local.yaml go run ./cmd/url-shortener
+cd /Users/vlad/Documents/Web/url-shortener
+CONFIG_PATH=./config/prod.yaml go run ./cmd/url-shortener
 ```
 
 Если SSO-сервис недоступен, приложение упадёт при инициализации клиента (ошибка `grpc.DialContext`).

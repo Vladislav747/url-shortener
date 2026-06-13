@@ -27,6 +27,8 @@ func New(
 	timeout time.Duration,
 	retriesCount int,
 ) (*Client, error) {
+	const op = "grpc.New"
+
 	retryOpts := []retry.CallOption{
 		retry.WithCodes(codes.NotFound, codes.Aborted, codes.DeadlineExceeded, codes.Internal, codes.Unavailable),
 		retry.WithMax(uint(retriesCount)),
@@ -45,7 +47,7 @@ func New(
 		),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return &Client{
@@ -54,8 +56,8 @@ func New(
 	}, nil
 }
 
-func (c *Client) isAdmin(ctx context.Context, userID int64) (bool, error) {
-	const op = "grpc.isAdmin"
+func (c *Client) IsAdmin(ctx context.Context, userID int64) (bool, error) {
+	const op = "grpc.IsAdmin"
 
 	resp, err := c.api.IsAdmin(ctx, &ssov1.IsAdminRequest{
 		UserId: userID,
@@ -64,7 +66,7 @@ func (c *Client) isAdmin(ctx context.Context, userID int64) (bool, error) {
 		return false, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return resp.IsAdmin, nil
+	return resp.GetIsAdmin(), nil
 }
 
 func InterceptorLogger(l *slog.Logger) grpcLogging.Logger {
