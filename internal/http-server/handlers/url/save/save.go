@@ -19,7 +19,8 @@ import (
 
 const (
 	aliasLength = 6
-	mockUserID  = 1
+	// TODO: remove mockUserID - смотри sqlite.db в папке Web/auth_project
+	mockUserID = 1
 )
 
 type Request struct {
